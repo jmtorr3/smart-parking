@@ -37,7 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'parking',
 ]
+
+# Custom user model
+AUTH_USER_MODEL = 'parking.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
