@@ -91,8 +91,10 @@ function App() {
           </div>
         </div>
         <div className="header-bottom">
-          <span className="last-updated">Loading...</span>
           <p>Real-time parking availability</p>
+          {lastUpdated && (
+            <span className="last-updated">Last updated: {lastUpdated.toLocaleTimeString()}</span>
+          )}
         </div>
       </header>
       <div className="dashboard">
@@ -134,10 +136,10 @@ function App() {
           </div>
         </div>
         <div className="header-bottom">
+          <p>Real-time parking availability</p>
           {lastUpdated && (
             <span className="last-updated">Last updated: {lastUpdated.toLocaleTimeString()}</span>
           )}
-          <p>Real-time parking availability</p>
         </div>
       </header>
 
