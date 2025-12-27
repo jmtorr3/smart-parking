@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import vtLogo from './VT_Logo.jpg';
 
 function App() {
   const [lots, setLots] = useState([]);
@@ -7,7 +8,8 @@ function App() {
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
     try {
@@ -15,6 +17,7 @@ function App() {
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setLots(data);
+      setLastUpdated(new Date());
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -47,36 +50,73 @@ function App() {
     }
   }, [selectedLot]);
 
-  const filteredLots = lots.filter(lot => {
-    if (filter === 'available') return lot.available_spots > 0;
-    if (filter === 'full') return lot.available_spots === 0;
-    return true;
-  });
+  if (loading) return (
+    <div className="app">
+      <header className="header">
+        <div className="header-top">
+          <div className="header-title">
+            <img src={vtLogo} alt="Virginia Tech" className="vt-logo" />
+            <h1>VT Smart Parking</h1>
+          </div>
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search lots..."
+              className="search-input"
+              disabled
+            />
+          </div>
+        </div>
+        <div className="header-bottom">
+          <span className="last-updated">Loading...</span>
+          <p>Real-time parking availability</p>
+        </div>
+      </header>
+      <div className="dashboard">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="lot-card skeleton">
+            <div className="skeleton-title"></div>
+            <div className="skeleton-stats">
+              <div className="skeleton-number"></div>
+              <div className="skeleton-number"></div>
+            </div>
+            <div className="skeleton-bar"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
-  if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
   return (
     <div className="app">
       <header className="header">
-        <h1>🅿️ VT Smart Parking</h1>
-        <p>Real-time parking availability</p>
+        <div className="header-top">
+          <div className="header-title">
+            <img src={vtLogo} alt="Virginia Tech" className="vt-logo" />
+            <h1>VT Smart Parking</h1>
+          </div>
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search lots..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+        </div>
+        <div className="header-bottom">
+          {lastUpdated && (
+            <span className="last-updated">Last updated: {lastUpdated.toLocaleTimeString()}</span>
+          )}
+          <p>Real-time parking availability</p>
+        </div>
       </header>
 
-      <div className="filters">
-        <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
-          All Lots
-        </button>
-        <button className={filter === 'available' ? 'active' : ''} onClick={() => setFilter('available')}>
-          Has Space
-        </button>
-        <button className={filter === 'full' ? 'active' : ''} onClick={() => setFilter('full')}>
-          Full
-        </button>
-      </div>
-
       <div className="dashboard">
-        {filteredLots.map((lot) => (
+        {lots.filter(lot => lot.name.toLowerCase().includes(searchTerm.toLowerCase())).map((lot) => (
           <div 
             key={lot.id} 
             className={`lot-card ${selectedLot?.id === lot.id ? 'selected' : ''}`}
@@ -98,8 +138,8 @@ function App() {
                 className="occupancy-fill"
                 style={{ 
                   width: `${lot.occupancy_percent}%`,
-                  backgroundColor: lot.occupancy_percent > 80 ? '#e74c3c' : 
-                                   lot.occupancy_percent > 50 ? '#f39c12' : '#2ecc71'
+                  backgroundColor: lot.occupancy_percent > 80 ? '#ef4444' : 
+                                   lot.occupancy_percent > 50 ? '#f59e0b' : '#10b981'
                 }}
               />
             </div>
