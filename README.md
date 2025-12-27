@@ -6,7 +6,7 @@ A real-time smart parking availability system that helps drivers find open spots
 
 ParkGrid tracks parking lot occupancy in real-time. Users can see which lots have space, drill down to individual spots, and watch availability change live as cars come and go.
 
-![Dashboard Preview](screenshots/dashboard.png)
+![Dashboard Preview](dashboard.png)
 
 ## Team
 
