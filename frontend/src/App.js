@@ -69,6 +69,213 @@ function App() {
     }
   }, [selectedLot]);
 
+  // Get layout type based on lot id
+  const getLayoutType = (lotId) => {
+    const layouts = ['horizontal', 'angled', 'vertical', 'double', 'compact'];
+    return layouts[lotId % layouts.length];
+  };
+
+  // Render parking spots based on layout type
+  const renderParkingLayout = () => {
+    if (!selectedLot || spots.length === 0) return null;
+
+    const layoutType = getLayoutType(selectedLot.id);
+    const halfLength = Math.ceil(spots.length / 2);
+    const quarterLength = Math.ceil(spots.length / 4);
+
+    switch (layoutType) {
+      case 'horizontal':
+        return (
+          <div className="parking-lot-layout horizontal-layout">
+            <div className="parking-section">
+              <div className="parking-row horizontal-row top">
+                {spots.slice(0, halfLength).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot horizontal ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="road horizontal-road">
+                <div className="road-line"></div>
+                <span className="road-label">← Driving Lane →</span>
+                <div className="road-line"></div>
+              </div>
+              <div className="parking-row horizontal-row bottom">
+                {spots.slice(halfLength).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot horizontal ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'angled':
+        return (
+          <div className="parking-lot-layout angled-layout">
+            <div className="parking-section">
+              <div className="parking-row angled-row top">
+                {spots.slice(0, halfLength).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot angled angled-down ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="road">
+                <div className="road-line"></div>
+                <div className="road-arrow">→</div>
+                <span className="road-label">One Way</span>
+                <div className="road-arrow">→</div>
+                <div className="road-line"></div>
+              </div>
+              <div className="parking-row angled-row bottom">
+                {spots.slice(halfLength).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot angled angled-up ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'vertical':
+        return (
+          <div className="parking-lot-layout vertical-layout">
+            <div className="vertical-container">
+              <div className="parking-column left-column">
+                {spots.slice(0, halfLength).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot vertical ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="road vertical-road">
+                <div className="road-line-vertical"></div>
+                <span className="road-label-vertical">↑ Driving Lane ↓</span>
+                <div className="road-line-vertical"></div>
+              </div>
+              <div className="parking-column right-column">
+                {spots.slice(halfLength).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot vertical ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'double':
+        return (
+          <div className="parking-lot-layout double-layout">
+            <div className="parking-section">
+              <div className="parking-row horizontal-row top">
+                {spots.slice(0, quarterLength).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot horizontal ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="road horizontal-road">
+                <div className="road-line"></div>
+                <span className="road-label">← Lane A →</span>
+                <div className="road-line"></div>
+              </div>
+              <div className="parking-row horizontal-row middle">
+                {spots.slice(quarterLength, quarterLength * 2).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot horizontal ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="parking-island">
+                <span>🌳</span>
+                <span>🌳</span>
+                <span>🌳</span>
+              </div>
+              <div className="parking-row horizontal-row middle">
+                {spots.slice(quarterLength * 2, quarterLength * 3).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot horizontal ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="road horizontal-road">
+                <div className="road-line"></div>
+                <span className="road-label">← Lane B →</span>
+                <div className="road-line"></div>
+              </div>
+              <div className="parking-row horizontal-row bottom">
+                {spots.slice(quarterLength * 3).map((spot) => (
+                  <div 
+                    key={spot.parking_spot_id} 
+                    className={`parking-spot horizontal ${spot.availability ? 'free' : 'taken'}`}
+                  >
+                    <span className="spot-number">{spot.parking_spot_id}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'compact':
+      default:
+        return (
+          <div className="parking-lot-layout compact-layout">
+            <div className="entry-exit">
+              <span className="entry">↓ ENTRY</span>
+              <span className="exit">EXIT ↑</span>
+            </div>
+            <div className="parking-grid">
+              {spots.map((spot) => (
+                <div 
+                  key={spot.parking_spot_id} 
+                  className={`parking-spot compact ${spot.availability ? 'free' : 'taken'}`}
+                >
+                  <span className="spot-number">{spot.parking_spot_id}</span>
+                </div>
+              ))}
+            </div>
+            <div className="road compact-road">
+              <div className="road-line"></div>
+              <span className="road-label">← Driving Lane →</span>
+              <div className="road-line"></div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   if (!isLoggedIn) {
     return <Login onLogin={() => setIsLoggedIn(true)} />;
   }
@@ -79,7 +286,7 @@ function App() {
         <div className="header-top">
           <div className="header-title">
             <img src={vtLogo} alt="Virginia Tech" className="vt-logo" />
-            <h1>ParkGrid: Smart Parking</h1>
+            <h1>Smart Parking</h1>
           </div>
           <div className="search-container">
             <input
@@ -125,7 +332,7 @@ function App() {
         <div className="header-top">
           <div className="header-title">
             <img src={vtLogo} alt="Virginia Tech" className="vt-logo" />
-            <h1>ParkGrid: Smart Parking</h1>
+            <h1>Smart Parking</h1>
           </div>
           <div className="header-controls">
             <div className="search-container">
@@ -186,16 +393,7 @@ function App() {
           {selectedLot ? (
             <div className="spot-detail">
               <h2>{selectedLot.name} - Individual Spots</h2>
-              <div className="spots-grid">
-                {spots.map((spot) => (
-                  <div 
-                    key={spot.parking_spot_id} 
-                    className={`spot ${spot.availability ? 'free' : 'taken'}`}
-                  >
-                    {spot.parking_spot_id}
-                  </div>
-                ))}
-              </div>
+              {renderParkingLayout()}
               <div className="legend">
                 <span><span className="dot free"></span> Available</span>
                 <span><span className="dot taken"></span> Occupied</span>
