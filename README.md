@@ -8,6 +8,14 @@ ParkGrid tracks parking lot occupancy in real-time. Users can see which lots hav
 
 ![Dashboard Preview](screenshots/dashboard.png)
 
+## Team
+
+Built with slumpy666 (github username)
+
+## ER Diagram:
+
+![ER Diagram](Database_Diagram.png)
+
 ## Features
 
 - **Live Dashboard** - See all parking lots with available/total spots and occupancy percentage
@@ -171,17 +179,10 @@ In production, this would be replaced by actual IoT sensor data via webhooks or 
 
 ## Future Improvements
 
-- [ ] WebSocket integration for true real-time (no polling)
 - [ ] Campus map view with lot locations
 - [ ] Historical occupancy charts
 - [ ] Peak hours prediction
 - [ ] Mobile app
 - [ ] Push notifications when spots open
 
-## Team
-
-Built during VT Hackathon Fall 2024
-
-## License
-
-MIT
+      
