@@ -1,39 +1,49 @@
 #!/usr/bin/env bash
-
 set -e
 
-echo "Starting Smart Parking (backend + frontend)..."
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VENV_PY="$ROOT_DIR/backend/venv/bin/python"
 
-# --- BACKEND ---
+echo "Starting Smart Parking (backend + frontend)..."
+echo "Using Python: $VENV_PY"
+
+####################
+# BACKEND
+####################
 echo "Starting backend..."
-cd backend
-source venv/bin/activate
-cd parking_system
+cd "$ROOT_DIR/backend/parking_system"
 
 # Migrate & seed
-python manage.py migrate
-python manage.py seed_data || echo "seed_data failed (continuing)"
+"$VENV_PY" manage.py migrate
+"$VENV_PY" manage.py seed_data || echo "seed_data failed (continuing)"
 
-# Start simulate_sensors in background
-python manage.py simulate_sensors &
+# Start long-running processes in background
+"$VENV_PY" manage.py simulate_sensors &
 SENSORS_PID=$!
 
-# Start Django server in background
-python manage.py runserver 0.0.0.0:8000 &
+"$VENV_PY" manage.py runserver 0.0.0.0:8000 &
 BACKEND_PID=$!
 
-# --- FRONTEND ---
+####################
+# FRONTEND
+####################
 echo "Starting frontend..."
-cd ../../frontend
+cd "$ROOT_DIR/frontend"
+
 [ -d node_modules ] || npm install
 npm start &
 FRONTEND_PID=$!
 
-# --- WAIT ---
+####################
+# WAIT & TRAP
+####################
 echo "Backend PID: $BACKEND_PID"
 echo "Sensors PID: $SENSORS_PID"
 echo "Frontend PID: $FRONTEND_PID"
-echo "Press Ctrl+C to stop all processes."
+echo "Press Ctrl+C to stop everything."
+
+# Forward Ctrl+C / SIGTERM to all child processes
+trap "echo 'Stopping all...'; kill $BACKEND_PID $SENSORS_PID $FRONTEND_PID; exit" SIGINT SIGTERM
 
 wait
 
