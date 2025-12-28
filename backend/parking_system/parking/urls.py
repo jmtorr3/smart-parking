@@ -8,9 +8,15 @@ router.register(r'spots', views.ParkingSpotViewSet)
 router.register(r'permits', views.PermitTypeViewSet)
 router.register(r'events', views.EventViewSet)
 router.register(r'sessions', views.SessionViewSet)
+router.register(r'vehicles', views.VehicleViewSet, basename='vehicles')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Custom paths FIRST
     path('dashboard/', views.dashboard_summary, name='dashboard-summary'),
     path('register/', views.register, name='register'),
+    path('me/', views.my_profile, name='my-profile'),
+    path('events/active/', views.active_events, name='active-events'),
+    path('lots/for-my-permit/', views.lots_for_permit, name='lots-for-permit'),
+    # Router LAST
+    path('', include(router.urls)),
 ]

@@ -18,6 +18,259 @@ body {
   position: relative;
 }
 
+/* ==================== */
+/* EVENT BANNER         */
+/* ==================== */
+
+.event-banner {
+  background: linear-gradient(90deg, #dc2626, #991b1b);
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+}
+
+.event-icon {
+  font-size: 1.5rem;
+}
+
+.event-info {
+  font-size: 0.95rem;
+}
+
+.event-info strong {
+  font-weight: 700;
+}
+
+.restricted-lots {
+  font-weight: 600;
+  color: #fecaca;
+}
+
+/* ==================== */
+/* USER PANEL           */
+/* ==================== */
+
+.user-panel {
+  background: rgba(134, 31, 65, 0.08);
+  border: 1px solid rgba(134, 31, 65, 0.2);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 30px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.user-greeting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f3f4f6;
+}
+
+.permit-badge {
+  background: linear-gradient(135deg, #861F41 0%, #E5751F 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-vehicle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.vehicle-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9ca3af;
+}
+
+.vehicle-tag {
+  background: rgba(229, 117, 31, 0.15);
+  border: 1px solid rgba(229, 117, 31, 0.3);
+  color: #E5751F;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.remove-vehicle {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.remove-vehicle:hover {
+  color: #ef4444;
+}
+
+.no-vehicle {
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.add-vehicle-btn {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.add-vehicle-btn:hover {
+  background: #10b981;
+  color: white;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-left: auto;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.filter-toggle input {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: #861F41;
+}
+
+.filter-toggle:hover {
+  color: #f3f4f6;
+}
+
+/* ==================== */
+/* ADD VEHICLE FORM     */
+/* ==================== */
+
+.add-vehicle-form {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(134, 31, 65, 0.2);
+  flex-wrap: wrap;
+}
+
+.add-vehicle-form input {
+  padding: 10px 14px;
+  border: 1px solid rgba(134, 31, 65, 0.3);
+  border-radius: 8px;
+  background: rgba(134, 31, 65, 0.08);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.add-vehicle-form input::placeholder {
+  color: #6b7280;
+}
+
+.add-vehicle-form input:focus {
+  border-color: #861F41;
+  box-shadow: 0 0 0 3px rgba(134, 31, 65, 0.2);
+}
+
+.add-vehicle-form button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.add-vehicle-form button[type="submit"] {
+  background: linear-gradient(135deg, #861F41 0%, #E5751F 100%);
+  color: white;
+}
+
+.add-vehicle-form button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(134, 31, 65, 0.3);
+}
+
+.add-vehicle-form button[type="button"] {
+  background: rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.add-vehicle-form button[type="button"]:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #f3f4f6;
+}
+
+/* ==================== */
+/* RESTRICTED LOT       */
+/* ==================== */
+
+.lot-card.restricted {
+  border: 2px solid #dc2626;
+}
+
+.lot-card.restricted::before {
+  background: linear-gradient(180deg, #dc2626, #991b1b);
+  opacity: 1;
+}
+
+.restricted-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #fca5a5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Header */
 .header {
   margin-bottom: 40px;
@@ -784,7 +1037,10 @@ body {
   text-decoration: underline;
 }
 
-/* Responsive */
+/* ==================== */
+/* RESPONSIVE           */
+/* ==================== */
+
 @media (max-width: 900px) {
   .app {
     padding: 24px 16px;
@@ -846,5 +1102,34 @@ body {
 
   .spot-number {
     font-size: 0.6rem;
+  }
+
+  /* User panel responsive */
+  .user-panel {
+    padding: 16px;
+  }
+
+  .user-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .filter-toggle {
+    margin-left: 0;
+  }
+
+  .add-vehicle-form {
+    flex-direction: column;
+  }
+
+  .add-vehicle-form input {
+    width: 100%;
+  }
+
+  .event-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
   }
 }
