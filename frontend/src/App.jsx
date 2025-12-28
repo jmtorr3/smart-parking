@@ -3,6 +3,8 @@ import './App.css';
 import vtLogo from './VT_Logo.jpg';
 import Login from './Login';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [lots, setLots] = useState([]);
@@ -30,7 +32,7 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/dashboard/');
+      const response = await fetch(`${API_URL}/api/dashboard/`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setLots(data);
@@ -44,7 +46,7 @@ function App() {
 
   const fetchSpots = async (lotId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/spots/?parking_lot=${lotId}`);
+      const response = await fetch(`${API_URL}/api/spots/?parking_lot=${lotId}`);
       if (!response.ok) throw new Error('Failed to fetch spots');
       const data = await response.json();
       setSpots(data);
