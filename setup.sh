@@ -14,6 +14,14 @@ if ! docker info > /dev/null 2>&1; then
     echo "✅ Docker is running"
 fi
 
+# Stop any existing containers and remove volumes
+echo "🧹 Cleaning up old containers..."
+docker compose down -v
+
+# Build fresh images
+echo "🔨 Building images..."
+docker compose build --no-cache
+
 # Start database first
 echo "📦 Starting database..."
 docker compose up -d db
