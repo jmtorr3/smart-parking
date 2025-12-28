@@ -1,5 +1,4 @@
 name: ParkGrid CI
-
 on:
   push:
     branches: [main, auth, layout_changes, ci_integration]
@@ -26,18 +25,21 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Django checks
+        env:
+          USE_SQLITE: true
         run: |
           cd backend/parking_system
           python manage.py check
 
       - name: Run backend tests
+        env:
+          USE_SQLITE: true
         run: |
           cd backend/parking_system
           python manage.py test
 
   frontend-build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
