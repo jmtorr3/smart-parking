@@ -89,11 +89,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'parking_system.wsgi.application'
 
 # Database - PostgreSQL via environment variable
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'postgres://parking_dev:devpassword123@localhost:5432/smart_parking')
-    )
-}
+# Database configuration
+if os.environ.get('USE_SQLITE'):
+    # Quick local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    # Docker / Production - PostgreSQL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL', 'postgres://parking_dev:devpassword123@localhost:5432/smart_parking')
+        )
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
