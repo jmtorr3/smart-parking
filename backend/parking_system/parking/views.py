@@ -22,11 +22,11 @@ class ParkingLotViewSet(viewsets.ModelViewSet):
 
 
 class ParkingSpotViewSet(viewsets.ModelViewSet):
-    queryset = ParkingSpot.objects.all().order_by('spot_id')
+    queryset = ParkingSpot.objects.all().order_by('parking_spot_id')
     serializer_class = ParkingSpotSerializer
 
     def get_queryset(self):
-        queryset = ParkingSpot.objects.all().order_by('spot_id')
+        queryset = ParkingSpot.objects.all().order_by('parking_spot_id')
         lot_id = self.request.query_params.get('parking_lot')
         if lot_id:
             queryset = queryset.filter(parking_lot_id=lot_id)
