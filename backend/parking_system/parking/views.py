@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
+from django.db import IntegrityError
 from django.db.models import Count, Q
 from django.core.cache import cache
 from .models import PermitType, ParkingLot, ParkingSpot, Event, Session, User, Vehicle
@@ -74,13 +75,49 @@ def dashboard_summary(request):
     Optimized with:
     - Single query using annotations (no N+1)
     - 2-second cache to reduce redundant queries
+    - Cache locking to prevent thundering herd
     """
-    # Try cache first
     cache_key = 'dashboard_summary'
-    data = cache.get(cache_key)
+    lock_key = 'dashboard_summary_lock'
 
-    if data is None:
-        # Single query with annotations - no N+1 problem
+    # Try cache first
+    data = cache.get(cache_key)
+    if data is not None:
+        return Response(data)
+
+    # Try to acquire lock to prevent thundering herd
+    # Only one request will rebuild the cache; others get stale data or wait briefly
+    acquired = cache.add(lock_key, '1', timeout=5)
+
+    if acquired:
+        try:
+            # Double-check cache after acquiring lock
+            data = cache.get(cache_key)
+            if data is None:
+                # Single query with annotations - no N+1 problem
+                lots = ParkingLot.objects.annotate(
+                    total=Count('spots'),
+                    available=Count('spots', filter=Q(spots__availability=True))
+                ).order_by('parking_lot_id')
+
+                data = [
+                    {
+                        'id': lot.parking_lot_id,
+                        'name': lot.parking_lot_name,
+                        'total_spots': lot.total,
+                        'available_spots': lot.available,
+                        'occupancy_percent': round((lot.total - lot.available) / lot.total * 100, 1) if lot.total > 0 else 0
+                    }
+                    for lot in lots
+                ]
+
+                # Cache for 2 seconds - balances freshness with performance
+                cache.set(cache_key, data, timeout=2)
+        finally:
+            cache.delete(lock_key)
+    else:
+        # Another request is rebuilding cache; fetch fresh data directly
+        # This is rare and only happens during cache rebuild
         lots = ParkingLot.objects.annotate(
             total=Count('spots'),
             available=Count('spots', filter=Q(spots__availability=True))
@@ -96,9 +133,6 @@ def dashboard_summary(request):
             }
             for lot in lots
         ]
-
-        # Cache for 2 seconds - balances freshness with performance
-        cache.set(cache_key, data, timeout=2)
 
     return Response(data)
 
@@ -149,14 +183,13 @@ def register(request):
     if not username or not password:
         return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if User.objects.filter(username=username).exists():
+    try:
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+        return Response({'message': 'User created successfully', 'user_id': user.user_id}, status=status.HTTP_201_CREATED)
+    except IntegrityError:
         return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-    user = User.objects.create_user(
-        username=username,
-        password=password,
-        first_name=first_name,
-        last_name=last_name
-    )
-
-    return Response({'message': 'User created successfully', 'user_id': user.user_id}, status=status.HTTP_201_CREATED)

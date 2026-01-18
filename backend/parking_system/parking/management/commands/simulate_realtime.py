@@ -2,6 +2,7 @@ import random
 import time
 from datetime import datetime
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from parking.models import ParkingLot
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -105,89 +106,101 @@ class Command(BaseCommand):
 
     def simulate_lot(self, lot, target, gain, max_step_percent, channel_layer, now):
         """Simulate occupancy changes for a single parking lot."""
-        spots = list(lot.spots.all())
-        if not spots:
-            return
-
-        total = len(spots)
-        occupied_spots = [s for s in spots if not s.availability]
-        available_spots = [s for s in spots if s.availability]
-        current_occupied = len(occupied_spots)
-
-        desired_occupied = round(total * target)
-        diff = desired_occupied - current_occupied
-
-        # Skip if close enough to target
-        if abs(diff) <= 1:
-            return
-
-        # Calculate step size with gain and max limit
-        step = round(abs(diff) * gain)
-        max_step = max(1, round(total * max_step_percent))
-        step = min(step, max_step)
-
-        if step == 0:
-            return
-
+        lot_id = lot.pk
         changes = []
+        new_occupancy = 0
+        total = 0
+        lot_name = lot.parking_lot_name
 
-        if diff > 0:
-            # Need more cars (occupy spots)
-            spots_to_occupy = shuffle(available_spots)[:step]
-            for spot in spots_to_occupy:
-                spot.availability = False
-                spot.save()
-                changes.append({
-                    'spot_id': spot.parking_spot_id,
-                    'available': False,
-                    'action': 'PARKED'
-                })
-        else:
-            # Need fewer cars (free spots)
-            spots_to_free = shuffle(occupied_spots)[:step]
-            for spot in spots_to_free:
-                spot.availability = True
-                spot.save()
-                changes.append({
-                    'spot_id': spot.parking_spot_id,
-                    'available': True,
-                    'action': 'DEPARTED'
-                })
+        # Use transaction.atomic and select_for_update to prevent race conditions
+        with transaction.atomic():
+            # Lock the lot and its spots for update
+            lot = ParkingLot.objects.select_for_update().get(pk=lot_id)
+            spots = list(lot.spots.select_for_update().all())
 
-        # Update lot occupancy count
-        new_occupancy = lot.spots.filter(availability=False).count()
-        lot.occupancy = new_occupancy
-        lot.save()
+            if not spots:
+                return
 
-        # Log changes
+            total = len(spots)
+            lot_name = lot.parking_lot_name
+            occupied_spots = [s for s in spots if not s.availability]
+            available_spots = [s for s in spots if s.availability]
+            current_occupied = len(occupied_spots)
+
+            desired_occupied = round(total * target)
+            diff = desired_occupied - current_occupied
+
+            # Skip if close enough to target
+            if abs(diff) <= 1:
+                return
+
+            # Calculate step size with gain and max limit
+            step = round(abs(diff) * gain)
+            max_step = max(1, round(total * max_step_percent))
+            step = min(step, max_step)
+
+            if step == 0:
+                return
+
+            if diff > 0:
+                # Need more cars (occupy spots)
+                spots_to_occupy = shuffle(available_spots)[:step]
+                for spot in spots_to_occupy:
+                    spot.availability = False
+                    spot.save()
+                    changes.append({
+                        'spot_id': spot.parking_spot_id,
+                        'available': False,
+                        'action': 'PARKED'
+                    })
+            else:
+                # Need fewer cars (free spots)
+                spots_to_free = shuffle(occupied_spots)[:step]
+                for spot in spots_to_free:
+                    spot.availability = True
+                    spot.save()
+                    changes.append({
+                        'spot_id': spot.parking_spot_id,
+                        'available': True,
+                        'action': 'DEPARTED'
+                    })
+
+            # Update lot occupancy count (within same transaction)
+            new_occupancy = lot.spots.filter(availability=False).count()
+            lot.occupancy = new_occupancy
+            lot.save()
+
+        # Skip logging/broadcast if no changes were made
+        if not changes:
+            return
+
+        # Log changes (outside transaction)
         time_str = now.strftime('%H:%M:%S')
         target_pct = int(target * 100)
         actual_pct = int((new_occupancy / total) * 100) if total > 0 else 0
 
         self.stdout.write(
-            f'[{time_str}] {lot.parking_lot_name}: '
+            f'[{time_str}] {lot_name}: '
             f'{new_occupancy}/{total} occupied ({actual_pct}%) '
             f'[target: {target_pct}%] '
             f'({len(changes)} changes)'
         )
 
-        # Broadcast each change via WebSocket
-        for change in changes:
-            async_to_sync(channel_layer.group_send)(
-                'parking_updates',
-                {
-                    'type': 'parking_update',
-                    'data': {
-                        'lot_id': lot.parking_lot_id,
-                        'lot_name': lot.parking_lot_name,
-                        'spot_id': change['spot_id'],
-                        'available': change['available'],
-                        'occupancy': new_occupancy,
-                        'total_spots': total,
-                        'available_spots': total - new_occupancy,
-                        'occupancy_percent': actual_pct,
-                        'target_percent': target_pct,
-                        'timestamp': now.isoformat(),
-                    }
+        # Batch broadcast all changes via WebSocket (single message with all updates)
+        async_to_sync(channel_layer.group_send)(
+            'parking_updates',
+            {
+                'type': 'batch_update',
+                'data': {
+                    'lot_id': lot_id,
+                    'lot_name': lot_name,
+                    'changes': changes,
+                    'occupancy': new_occupancy,
+                    'total_spots': total,
+                    'available_spots': total - new_occupancy,
+                    'occupancy_percent': actual_pct,
+                    'target_percent': target_pct,
+                    'timestamp': now.isoformat(),
                 }
-            )
+            }
+        )

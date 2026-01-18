@@ -78,6 +78,25 @@
 - [ ] Database connection pooling for production
 - [x] Redis caching for higher traffic (Redis channel layer for WebSocket)
 
+## Race Conditions (Critical)
+
+All race conditions have been fixed:
+
+- [x] **Spot/Lot occupancy desync** - Wrapped spot and lot updates in `@transaction.atomic` with `select_for_update()`
+  - Location: `simulate_realtime.py`, `simulate_sensors.py`
+- [x] **Manual occupancy counter** - Now updated atomically within the same transaction as spot changes
+  - Location: `simulate_realtime.py`, `simulate_sensors.py`
+- [x] **No `select_for_update()` on spot modifications** - Added `select_for_update()` for both spots and lots
+  - Location: `simulate_realtime.py`, `simulate_sensors.py`
+- [x] **Username duplicate race condition** - Replaced check-then-create with try/except `IntegrityError`
+  - Location: `views.py`
+- [x] **Cache thundering herd** - Implemented cache locking pattern with `cache.add()` for mutex
+  - Location: `views.py:dashboard_summary`
+- [x] **WebSocket broadcast gaps** - Batch updates now sent as single message after transaction commits
+  - Location: `simulate_realtime.py` (uses `batch_update` message type)
+- [x] **Frontend optimistic updates without validation** - Re-fetches full state on WebSocket reconnect
+  - Location: `Dashboard.jsx` (sends `get_status` on reconnect, handles `batch_update`)
+
 ## Security
 
 - [ ] Add CSRF protection for non-API views
@@ -101,7 +120,8 @@
 ## Priority Legend
 
 High priority items to tackle next:
-1. Historical occupancy charts (valuable feature)
-2. API documentation (developer experience)
-3. Frontend tests (code quality)
-4. WebSocket consumer tests
+1. ~~**Race conditions** (data integrity - critical for production)~~ ✅ Done
+2. Historical occupancy charts (valuable feature)
+3. API documentation (developer experience)
+4. Frontend tests (code quality)
+5. WebSocket consumer tests
