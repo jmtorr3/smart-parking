@@ -76,6 +76,38 @@ function Dashboard() {
           setLastUpdated(new Date());
           break;
 
+        case 'batch_update':
+          // Batch update for multiple spots (atomic update from server)
+          const batch = message.data;
+          if (batch.lot_id != null && typeof batch.available_spots === 'number') {
+            setLots(prevLots => prevLots.map(lot => {
+              const lotId = lot.id ?? lot.parking_lot_id;
+              if (lotId == batch.lot_id) {
+                return {
+                  ...lot,
+                  total_spots: typeof batch.total_spots === 'number' ? batch.total_spots : lot.total_spots,
+                  available_spots: batch.available_spots,
+                  occupancy_percent: typeof batch.occupancy_percent === 'number' ? batch.occupancy_percent : lot.occupancy_percent
+                };
+              }
+              return lot;
+            }));
+          }
+          // Update multiple spots if viewing this lot
+          if (batch.changes && Array.isArray(batch.changes)) {
+            setSpots(prevSpots => {
+              const changeMap = new Map(batch.changes.map(c => [c.spot_id, c.available]));
+              return prevSpots.map(spot => {
+                if (changeMap.has(spot.parking_spot_id)) {
+                  return { ...spot, availability: changeMap.get(spot.parking_spot_id) };
+                }
+                return spot;
+              });
+            });
+          }
+          setLastUpdated(new Date());
+          break;
+
         case 'status_update':
           // Full status update (response to get_status request)
           setLots(message.data.map(lot => ({
@@ -104,6 +136,9 @@ function Dashboard() {
     }
   }, []);
 
+  // Track if this is a reconnection (not initial connect)
+  const isReconnectRef = useRef(false);
+
   // Connect to WebSocket
   const connectWebSocket = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -114,6 +149,13 @@ function Dashboard() {
       console.log('WebSocket connected');
       setWsConnected(true);
       setError(null);
+
+      // On reconnect, request full state to ensure consistency
+      if (isReconnectRef.current) {
+        console.log('Reconnected - requesting full state refresh');
+        ws.send(JSON.stringify({ type: 'get_status' }));
+      }
+      isReconnectRef.current = true;
     };
 
     ws.onmessage = handleWsMessage;

@@ -80,28 +80,22 @@
 
 ## Race Conditions (Critical)
 
-These race conditions should be addressed before production deployment:
+All race conditions have been fixed:
 
-- [ ] **Spot/Lot occupancy desync** - Spot availability and lot occupancy counter are updated in separate transactions, causing brief inconsistencies
-  - Location: `simulate_realtime.py:134-160`, `simulate_sensors.py:29-37`
-  - Fix: Wrap spot and lot updates in `@transaction.atomic`
-- [ ] **Manual occupancy counter** - `ParkingLot.occupancy` is a manual field that can diverge from actual spot counts
-  - Location: `models.py:73-86`
-  - Fix: Replace with computed property or database trigger
-- [ ] **No `select_for_update()` on spot modifications** - Concurrent spot updates can overwrite each other
-  - Fix: Use `select_for_update()` when modifying spots
-- [ ] **Username duplicate race condition** - Check-then-create pattern allows duplicate usernames under concurrent registration
-  - Location: `views.py:140-162`
-  - Fix: Use `get_or_create()` or handle `IntegrityError`
-- [ ] **Cache thundering herd** - Multiple requests rebuild cache simultaneously when it expires
-  - Location: `views.py:71-103`
-  - Fix: Implement cache locking pattern
-- [ ] **WebSocket broadcast gaps** - Partial updates if process crashes mid-broadcast loop
-  - Location: `simulate_realtime.py:174-193`
-  - Fix: Batch updates or use transactions
-- [ ] **Frontend optimistic updates without validation** - Stale data displayed after reconnect
-  - Location: `Dashboard.jsx:32-104`
-  - Fix: Re-fetch full state on WebSocket reconnect
+- [x] **Spot/Lot occupancy desync** - Wrapped spot and lot updates in `@transaction.atomic` with `select_for_update()`
+  - Location: `simulate_realtime.py`, `simulate_sensors.py`
+- [x] **Manual occupancy counter** - Now updated atomically within the same transaction as spot changes
+  - Location: `simulate_realtime.py`, `simulate_sensors.py`
+- [x] **No `select_for_update()` on spot modifications** - Added `select_for_update()` for both spots and lots
+  - Location: `simulate_realtime.py`, `simulate_sensors.py`
+- [x] **Username duplicate race condition** - Replaced check-then-create with try/except `IntegrityError`
+  - Location: `views.py`
+- [x] **Cache thundering herd** - Implemented cache locking pattern with `cache.add()` for mutex
+  - Location: `views.py:dashboard_summary`
+- [x] **WebSocket broadcast gaps** - Batch updates now sent as single message after transaction commits
+  - Location: `simulate_realtime.py` (uses `batch_update` message type)
+- [x] **Frontend optimistic updates without validation** - Re-fetches full state on WebSocket reconnect
+  - Location: `Dashboard.jsx` (sends `get_status` on reconnect, handles `batch_update`)
 
 ## Security
 
@@ -126,7 +120,7 @@ These race conditions should be addressed before production deployment:
 ## Priority Legend
 
 High priority items to tackle next:
-1. **Race conditions** (data integrity - critical for production)
+1. ~~**Race conditions** (data integrity - critical for production)~~ ✅ Done
 2. Historical occupancy charts (valuable feature)
 3. API documentation (developer experience)
 4. Frontend tests (code quality)
