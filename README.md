@@ -4,6 +4,8 @@ A real-time smart parking availability system for Virginia Tech that helps drive
 
  **Live Demo:** https://busy.sys32ent.com/projects/smart-parking/
 
+ **Quick Demo Video:** https://drive.google.com/file/d/1i2iBi6BwchyWwZEsMr-X2uHa96rrrGug/view?usp=sharing
+
 ## What It Does
 
 ParkGrid tracks parking lot occupancy in real-time. Users can see which lots have space, drill down to individual spots, and watch availability change live as cars come and go.
