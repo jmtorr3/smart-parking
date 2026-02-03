@@ -2,7 +2,6 @@
 
 A real-time smart parking availability system for Virginia Tech that helps drivers find open spots instantly. Built with Django REST Framework, React, and simulated IoT sensors.
 
- **Live Demo:** https://busy.sys32ent.com/projects/smart-parking/
 
  **Quick Demo Video:** https://drive.google.com/file/d/1i2iBi6BwchyWwZEsMr-X2uHa96rrrGug/view?usp=sharing
 
